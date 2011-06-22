@@ -2171,7 +2171,7 @@
 
       childClass: HtmlNode,
       childFactory: function(config){
-        return new (this.childClass === HtmlNode ? HtmlNode : this.childClass)(config);
+        return new this.childClass(config);
       },
 
       // DOM methods
