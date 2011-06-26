@@ -551,7 +551,7 @@
 
       // do request
       request: function(url){
-        //debugger;
+
         var location = url || this.url;
         var method = this.method.toUpperCase();
         var params;

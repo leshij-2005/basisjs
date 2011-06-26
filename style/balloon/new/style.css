@@ -202,6 +202,7 @@
   {
     position: relative;
     background: #FFFAC3;
+    background-clip: padding-box;
     border: 1px solid #F3DD67;
     padding: 5px;
     border-radius: 2px;

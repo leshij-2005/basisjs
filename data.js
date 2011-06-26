@@ -1535,7 +1535,7 @@
 
      /**
       * Ordering items function.
-      * @type {function}
+      * @type {function()}
       * @readonly
       */
       index: Function.$true,

@@ -1755,10 +1755,8 @@
         // apply config
         if (config)
         {
-          try {
           ;;;if (config.traceEvents_ || this.traceEvents_) this.handlers_.push({ handler: { any: function(){ console.log('Event trace:', this, arguments) } }, thisObject: this });
           ;;;if ('thisObject' in config) console.warn(this.className + ': thisObject in config is deprecated. Use handlersContext instead');
-          }catch(e){ debugger; }
 
           if (config.handlers)
           {
