@@ -25,6 +25,7 @@
     var Browser = Basis.Browser;
     var extend = Object.extend;
     var cssClass = Basis.CSS.cssClass;
+    var Cleaner = Basis.Cleaner;
 
     var nsWrappers = DOM.Wrapper;
 
@@ -40,7 +41,7 @@
     var SUPPORT_DISPLAYBOX = false;
 
     var testElement = DOM.createElement('');
-    var prefixes = ['', '-webkit-'];
+    var prefixes = ['', '-webkit-', '-ms-'];
     for (var i = 0; i < prefixes.length; i++)
     {
       try
@@ -55,7 +56,7 @@
       } catch(e) {}
     }
 
-    var SUPPORT_ONRESIZE = typeof testElement.onresize != 'undefined';
+    var SUPPORT_ONRESIZE = typeof testElement.onresize != 'undefined' && testElement.attachEvent;
     var SUPPORT_COMPUTESTYLE = document.defaultView && document.defaultView.getComputedStyle;
 
     //
@@ -66,25 +67,22 @@
       if (SUPPORT_COMPUTESTYLE)
         try {
           return parseFloat(document.defaultView.getComputedStyle(element, null)[what]);
-        } catch(e){
-          return 0;
-        }
-      else
-        return 0;
+        } catch(e){}
+
+      return 0;
     }
 
     function getHeight(element, ruller){
       if (SUPPORT_COMPUTESTYLE)
-      {
         return getComputedProperty(element, 'height');
-      }
       else
       {
+        var currentStyle = element.currentStyle;
         DOM.Style.setStyle(ruller, {
-          borderTop: element.currentStyle.borderTopWidth + ' solid red',
-          borderBottom: element.currentStyle.borderBottomWidth + ' solid red',
-          paddingTop: element.currentStyle.paddingTop,
-          paddingBottom: element.currentStyle.paddingBottom,
+          borderTop: currentStyle.borderTopWidth + ' solid red',
+          borderBottom: currentStyle.borderBottomWidth + ' solid red',
+          paddingTop: currentStyle.paddingTop,
+          paddingBottom: currentStyle.paddingBottom,
           fontSize: 0.01,
           height: 0,
           overflow: 'hidden'
@@ -94,12 +92,27 @@
       }
     }
 
+    function getClearDimension(ruller, dimension){ // dimension - 'width' or 'height'
+      if (SUPPORT_COMPUTESTYLE)
+        return getComputedProperty(ruller, dimension) || 0;
+      else
+      {
+        var rullerPadding = 0;
+        var properties = dimension == 'width' ? ['paddingLeft', 'paddingRight'] : ['paddingTop', 'paddingBottom'];
+        properties.forEach(function(item){
+          rullerPadding += parseFloat(ruller.currentStyle[item]) || 0;
+        });
+        return ruller['client' + dimension.capitalize()] - rullerPadding;
+      }
+    }
+
     function addBlockResizeHandler(element, handler){
       // element.style.position = 'relative';
       if (SUPPORT_ONRESIZE)
       {
         cssClass(element).add('Basis-Layout-OnResizeElement');
-        element.onresize = handler;
+        element.attachEvent('onresize', handler);
+        return handler;
       }
       else
       {
@@ -115,13 +128,21 @@
             top: '-2000px'
           }
         });
-
         DOM.insert(element, iframe);
 
         iframe.onload = function(){
           (iframe.contentWindow.onresize = handler)();
         }
+
+        return iframe;
       }
+    }
+
+    function removeBlockResizeHandler(element, handler){
+      if (SUPPORT_ONRESIZE)
+        element.detachEvent('onresize', handler);
+      else
+        DOM.remove(handler);
     }
 
     // other stuff
@@ -533,6 +554,11 @@
    /**
     * @class
     */
+    var VERTICAL_PANEL_RESIZE_HANDLER = function(){
+      if (this.parentNode)
+        this.parentNode.realign();
+    }
+
     var VerticalPanel = Class(nsWrappers.HtmlContainer, {
       className: namespace + '.VerticalPanel',
 
@@ -553,19 +579,13 @@
           if (this.flex)
           {
             //DOM.Style.setStyleProperty(this.element, 'overflow', 'auto');
-
             if (SUPPORT_DISPLAYBOX !== false)
               DOM.Style.setStyleProperty(this.element, SUPPORT_DISPLAYBOX + 'box-flex', this.flex);
           }
           else
           {
             if (SUPPORT_DISPLAYBOX === false)
-            {
-              addBlockResizeHandler(this.element, (function(){
-                if (this.parentNode)
-                  this.parentNode.realign();
-              }).bind(this));
-            }
+              addBlockResizeHandler(this.element, VERTICAL_PANEL_RESIZE_HANDLER.bind(this));
           }
         }
       }
@@ -574,6 +594,11 @@
    /**
     * @class
     */
+    var VERTICAL_PANEL_STACK_RESIZE_HANDLER = function(){
+      if (this.parentNode)
+        this.parentNode.realign();
+    }
+
     var VerticalPanelStack = Class(nsWrappers.HtmlContainer, {
       className: namespace + '.VerticalPanelStack',
 
@@ -595,10 +620,7 @@
         {
           //this.box = new Box(this.childNodesElement, true);
           this.realign();
-
-          addBlockResizeHandler(this.childNodesElement, (function(){
-            this.realign();
-          }).bind(this));
+          addBlockResizeHandler(this.childNodesElement, VERTICAL_PANEL_STACK_RESIZE_HANDLER.bind(this));
         }
 
         return config;
@@ -669,11 +691,92 @@
       }
     });
 
+
+    //
+    // Strut
+    //
+
+    var STRUT_TYPE = {
+      HORIZONTAL: 1,
+      VERTICAL: 2,
+      BOTH: 3
+    };
+
+    DOM.Style.cssRule('.Basis-Strut').setStyle({
+      left: '0',
+      top: '0',
+      right: '0',
+      bottom: '0',
+      position: 'absolute',
+      visibility: 'hidden'
+    });
+
+    var STRUT_RESIZE_HANDLER = function(){
+      this.resize();
+    };
+
+   /**
+    * @class
+    */
+    var Strut = Class(null, {
+      className: namespace + '.Strut',
+
+      type: STRUT_TYPE.HORIZONTAL,
+      source: null,
+      target: null,
+
+      init: function(config){
+        this.inherit(config);
+
+        if (config.type)
+          this.type = config.type;
+
+        this.source = config.source.element || config.source;
+        this.target = config.target.element || config.target;
+        this.element = DOM.createElement('.Basis-Strut');
+        if (config.id)
+          this.element.id = config.id;
+
+        var genericRuleClassName = 'genericStrutRule-' + this.eventObjectId;
+        cssClass(this.target).add(genericRuleClassName);
+        this.targetRule = DOM.Style.cssRule('.' + genericRuleClassName);
+
+        DOM.insert(this.source, this.element);
+        this.resizeHandler = addBlockResizeHandler(this.element, STRUT_RESIZE_HANDLER.bind(this));
+
+        Cleaner.add(this);
+      },
+      resize: function(){
+        var style = {};
+
+        if (this.type & STRUT_TYPE.HORIZONTAL)
+          style.width = getClearDimension(this.element, 'width') + 'px';
+
+        if (this.type & STRUT_TYPE.VERTICAL)
+          style.height = getClearDimension(this.element, 'height') + 'px';
+
+        this.targetRule.setStyle(style);
+      },
+      destroy: function(){
+        removeBlockResizeHandler(this.resizeHandler)
+
+        this.resizeHandler = null;
+        this.targetRule = null;
+        this.source = null;
+        this.target = null;
+
+        Cleaner.remove(this);
+      }
+    });
+
+
     //
     // export names
     //
 
     Basis.namespace(namespace).extend({
+      STRUT_TYPE: STRUT_TYPE,
+      Strut: Strut,
       Box: Box,
       Intersection: Intersection,
       Viewport: Viewport,
