@@ -595,8 +595,7 @@
     * @class
     */
     var VERTICAL_PANEL_STACK_RESIZE_HANDLER = function(){
-      if (this.parentNode)
-        this.parentNode.realign();
+      this.realign();
     }
 
     var VerticalPanelStack = Class(nsWrappers.HtmlContainer, {
