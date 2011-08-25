@@ -309,6 +309,7 @@
         else
           if (this.parentNode)
             this.parentNode.submit();*/
+
         var next = DOM.axis(this, DOM.AXIS_FOLLOWING_SIBLING).search(true, 'selectable');
         if (next)
           next.select();
@@ -1597,6 +1598,7 @@
       Form: Form,
       FormContent: FormContent,
       Field: Field,
+      ComplexField: ComplexField,
       Validator: Validator,
       ValidatorError: ValidatorError,
       ComplexFieldItem: ComplexFieldItem,

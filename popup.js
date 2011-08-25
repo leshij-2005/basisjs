@@ -36,6 +36,10 @@
     if (!nsLayout)
       throw 'Basis.Controls.Popup: Basis.Layout required';
 
+
+    var LOCALE = function(section){
+      return Basis.Controls.Popup.LOCALE;
+    }
     //
     // CONST
     //
@@ -85,11 +89,12 @@
     var Popup = Class(nsWrappers.HtmlContainer, {
       className: namespace + '.Popup',
 
-      template: new Template(
-        '<div{element|selectedElement} class="Basis-Popup">' +
-          '<div{closeButton} class="Basis-Popup-CloseButton"><span>Close</span></div>' +
+      template: new Template(Function.lazyInit(function(){
+        return '<div{element|selectedElement} class="Basis-Popup">' +
+          '<div{closeButton} class="Basis-Popup-CloseButton"><span>' + (LOCALE() ? LOCALE().BUTTON.BACK : 'Close') + '</span></div>' +
           '<div{content|childNodesElement} class="Basis-Popup-Content"/>' +
         '</div>'
+        })
       ),
 
       behaviour: {
@@ -444,8 +449,8 @@
 
       cssLayoutPrefix: 'mode-',
 
-      template: new Template(
-        '<div{element|selectedElement} class="Basis-Balloon">' +
+      template: new Template(Function.lazyInit(function(){
+        return '<div{element|selectedElement} class="Basis-Balloon">' +
           '<div class="Basis-Balloon-Canvas">' +
             '<div class="corner-left-top"/>' +
             '<div class="corner-right-top"/>' +
@@ -459,11 +464,11 @@
             '<div class="tail"/>' +
           '</div>' +
           '<div class="Basis-Balloon-Layout">' +
-            '<div{closeButton} class="Basis-Balloon-CloseButton"><span>Close</span></div>' +
+            '<div{closeButton} class="Basis-Balloon-CloseButton"><span>' + (LOCALE() ? LOCALE().BUTTON.BACK : 'Close') + '</span></div>' +
             '<div{content|childNodesElement} class="Basis-Balloon-Content"/>' +
           '</div>' +
         '</div>'
-      )
+      }))
     });
 
     //
@@ -615,11 +620,12 @@
         }*/
       },
 
-      template: new Template(
-        '<div{element|selectedElement} class="Basis-Menu">' +
-          '<div{closeButton} class="Basis-Menu-CloseButton"><span>Close</span></div>' +
-          '<div{content|childNodesElement} class="Basis-Menu-Content"/>' +
-        '</div>'
+      template: new Template(Function.lazyInit(function(){
+        return '<div{element|selectedElement} class="Basis-Menu">' +
+            '<div{closeButton} class="Basis-Menu-CloseButton"><span>' + (LOCALE() ? LOCALE().BUTTON.BACK : 'Close') + '</span></div>' +
+            '<div{content|childNodesElement} class="Basis-Menu-Content"/>' +
+          '</div>'
+        })
       ),
 
       init: function(config){

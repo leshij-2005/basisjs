@@ -28,6 +28,11 @@
 
     var nsWrappers = DOM.Wrapper;
 
+    var LOCALE = function(section){
+      return Basis.Controls.Popup.LOCALE;
+    }
+
+
    /**
     * @class
     * @extends Basis.DOM.Wrapper.HtmlNode
@@ -239,7 +244,7 @@
                   this.close(0);
                 }, this)
               },
-              DOM.createElement('SPAN', 'Close')
+              DOM.createElement('SPAN', LOCALE() ? LOCALE().BUTTON.BACK : 'Close')
             )
           );
         }

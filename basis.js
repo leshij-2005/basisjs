@@ -1689,6 +1689,8 @@
 
     // EventObject seed ID
     var eventObjectId = 1;
+    var eventQueue = [];
+    var eventProcessing = false;
 
    /**
     * Creates behaviour singleton object.
@@ -1778,6 +1780,9 @@
       */
       addHandler: function(handler, thisObject){
         thisObject = thisObject || this;
+
+        if (thisObject instanceof EventObject === false)
+          console.warn('!');
         
         ;;;if (this.handlers_ === this.constructor.prototype.handlers_ && typeof console != 'undefined') console.warn('Add handler for not inited instance of EventObject (' + this.className + ')');
 
@@ -1832,6 +1837,14 @@
 
         if (handlersCount || behaviour)
         {
+          /*if (eventProcessing)
+          {
+            eventQueue.push([this, arguments]);
+            return;
+          }
+
+          eventProcessing = true; */
+
           var args = slice.call(arguments, 1);
 
           if (handlersCount)
@@ -1849,12 +1862,22 @@
               // handler call
               func = config.handler[eventName];
               if (typeof func == 'function')
+               //try {
                 func.apply(config.thisObject, args);
+              //} catch (e) { console.log(e) }
             }
           }
         
           if (typeof behaviour == 'function')
             behaviour.apply(this, args);
+
+          /*eventProcessing = false;
+
+          var event = eventQueue.shift();
+          if (event)
+          {
+            EventObject.prototype.dispatch.apply(event[0], event[1]);
+          } */
         }
       },
 
