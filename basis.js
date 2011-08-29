@@ -1780,10 +1780,7 @@
       */
       addHandler: function(handler, thisObject){
         thisObject = thisObject || this;
-
-        if (thisObject instanceof EventObject === false)
-          console.warn('!');
-        
+       
         ;;;if (this.handlers_ === this.constructor.prototype.handlers_ && typeof console != 'undefined') console.warn('Add handler for not inited instance of EventObject (' + this.className + ')');
 
         // search for duplicate

@@ -149,18 +149,7 @@
      */
     var XMLProgId = 'native';
     var createDocument = function(){
-      var implementation = document.implementation;
-      if (implementation && implementation.createDocument)
-      {
-        return function(namespace, nodename){ 
-          var result = implementation.createDocument(namespace, nodename, null);
-          if (result.charset && result.charset != document.charset)
-            result.charset = document.charset;
-          return result;
-        }
-      }
-
-      if (window.ActiveXObject)
+      if (typeof ActiveXObject !== 'undefined')
       {
         // http://blogs.msdn.com/xmlteam/archive/2006/10/23/using-the-right-version-of-msxml-in-internet-explorer.aspx
         var progId = ["MSXML2.DOMDocument.6.0", "MSXML2.DOMDocument.3.0"];
@@ -177,6 +166,18 @@
               };
             }
           } catch(e) {}
+      }
+
+      var implementation = document.implementation;
+      if (implementation && implementation.createDocument)
+      {
+        return function(namespace, nodename){ 
+          var result = implementation.createDocument(namespace, nodename, null);
+          //result.insertBefore(result.createProcessingInstruction('xml', 'version="1.0" encoding="utf-8"'), result.firstChild);
+          if (result.charset && result.charset != document.charset)
+            result.charset = document.charset;
+          return result;
+        }
       }
 
       throw new Error('Browser doesn\'t support for XML document!');

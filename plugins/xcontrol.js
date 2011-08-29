@@ -149,10 +149,16 @@
 
       this.header.owner = this;
       this.footer.owner = this;
-      
+
       this.thread = new Basis.Animation.Thread({
         duration: 400,
         interval: 15
+      });
+      this.thread.addHandler({
+        finish: function(){
+          if (this.callback)
+            this.callback();
+        }
       });
       var self = this;
       this.modificator = new Basis.Animation.Modificator(this.thread, function(value){
@@ -173,10 +179,10 @@
 
       this.timer_ = setInterval(function(){ self.recalc() }, 500);
     },
-    scrollToNode: function(node){
+    scrollToNode: function(node, callback){
       if (node && node.parentNode === this)
       {
-        var scrollTop = Math.min(this.content.scrollHeight - this.content.clientHeight, this.topPoints[DOM.index(node)]);
+        var scrollTop = Math.min(this.content.scrollHeight - this.content.clientHeight, this.topPoints[DOM.index(node)]/* || Number.MAX_VALUE*/);
 
         if (this.thread)
         {
@@ -184,11 +190,14 @@
           this.modificator.setRange(curScrollTop, curScrollTop);
           this.thread.stop();
           this.modificator.setRange(curScrollTop, scrollTop);
+          this.thread.callback = callback;
           this.thread.start();
         }
         else
         {
           this.content.scrollTop = scrollTop;
+          if (callback)
+            callback();
           //console.log('set scroll top#2', this.content.scrollTop = scrollTop);
         }
       }
