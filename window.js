@@ -189,10 +189,12 @@
                 move: function(){
                   this.autocenter = false;
                   this.element.style.margin = 0;
+                  this.element.style.WebkitTransform = 'translateZ(0)';
                 },
                 over: function(){
                   this.cssRule.setStyle(Object.slice(this.element.style, 'left top'.qw()));
                   DOM.setStyle(this.element, {
+                    //WebkitTransform: '',
                     top: '',
                     left: ''
                   });

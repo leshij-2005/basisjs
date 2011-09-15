@@ -41,7 +41,7 @@
     var SUPPORT_DISPLAYBOX = false;
 
     var testElement = DOM.createElement('');
-    var prefixes = ['', '-webkit-', '-ms-'];
+    var prefixes = ['', '-webkit-'];
     for (var i = 0; i < prefixes.length; i++)
     {
       try
@@ -142,7 +142,7 @@
       if (SUPPORT_ONRESIZE)
         element.detachEvent('onresize', handler);
       else
-        DOM.remove(handler);
+        DOM.remove(element);
     }
 
     // other stuff

@@ -23,6 +23,13 @@
 
   var nsWrappers = Basis.DOM.Wrapper;
 
+
+  var MAX_DURATION = 400;
+  var MIN_DURATION = 200;
+  var durationGetter = function(newPosition, oldPosition, scrollHeight){
+    return Math.max(Math.round(MAX_DURATION * Math.abs(newPosition - oldPosition) / scrollHeight), MIN_DURATION);
+  };
+
   var XControlItemHeader = Class(nsWrappers.HtmlNode, {
     template: new Template(
       '<div{element} class="XControl-Item-Header">' +
@@ -41,7 +48,6 @@
       Event.addHandler(this.element, 'click', function(){
         if (this.owner && this.owner.parentNode)
           this.owner.parentNode.scrollToNode(this.owner);
-
       }, this)
     }
   });
@@ -151,7 +157,7 @@
       this.footer.owner = this;
 
       this.thread = new Basis.Animation.Thread({
-        duration: 400,
+        duration: MAX_DURATION,
         interval: 15
       });
       this.thread.addHandler({
@@ -168,7 +174,7 @@
       }, 0, 0, true)
       this.modificator.timeFunction = function(value){
         return Math.sin(Math.acos(1 - value));
-      }
+      };
 
       Event.addHandler(this.content, 'scroll', this.recalc, this);
       Event.addHandler(window, 'resize', this.recalc, this);
@@ -182,7 +188,7 @@
     scrollToNode: function(node, callback){
       if (node && node.parentNode === this)
       {
-        var scrollTop = Math.min(this.content.scrollHeight - this.content.clientHeight, this.topPoints[DOM.index(node)]/* || Number.MAX_VALUE*/);
+        var scrollTop = Math.min(this.content.scrollHeight - this.content.clientHeight, this.topPoints[DOM.index(node)]) || 0;
 
         if (this.thread)
         {
@@ -190,8 +196,15 @@
           this.modificator.setRange(curScrollTop, curScrollTop);
           this.thread.stop();
           this.modificator.setRange(curScrollTop, scrollTop);
-          this.thread.callback = callback;
-          this.thread.start();
+          if (curScrollTop != scrollTop)
+          {
+            this.thread.duration = durationGetter(scrollTop, curScrollTop, this.content.scrollHeight);
+            this.thread.callback = callback;
+            this.thread.start();
+          }
+          else
+            if (callback)
+              callback();
         }
         else
         {
