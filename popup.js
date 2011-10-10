@@ -552,6 +552,7 @@
     */
     var MenuPartitionNode = Class(nsWrappers.HtmlPartitionNode, {
       className: namespace + '.MenuPartitionNode',
+      defaultHandler: function(){},
       template: new Template(
         '<div{element} class="Basis-Menu-ItemGroup">' +
           '<div{childNodesElement|content} class="Basis-Menu-ItemGroup-Content"></div>' +
