@@ -1586,7 +1586,7 @@
       },
       destroy: function(){
         Event.clearHandlers(this.field);
-        this.inhrit();
+        this.inherit();
       }
     });
 

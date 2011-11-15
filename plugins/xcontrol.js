@@ -171,7 +171,7 @@
         //console.log('set scrollTop ', self.content.scrollTop = parseInt(value));
         self.content.scrollTop = parseInt(value);
         self.recalc();
-      }, 0, 0, true)
+      }, 0, 0, true);
       this.modificator.timeFunction = function(value){
         return Math.sin(Math.acos(1 - value));
       };

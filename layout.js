@@ -733,10 +733,11 @@
         this.source = config.source.element || config.source;
         this.target = config.target.element || config.target;
         this.element = DOM.createElement('.Basis-Strut');
+
         if (config.id)
           this.element.id = config.id;
 
-        var genericRuleClassName = 'genericStrutRule-' + this.eventObjectId;
+        var genericRuleClassName = 'genericStrutRule-' + (this.element.id || '');
         cssClass(this.target).add(genericRuleClassName);
         this.targetRule = DOM.Style.cssRule('.' + genericRuleClassName);
 
