@@ -656,10 +656,14 @@
 
       behaviour: {
         select: function(){
+          this.inherit();
+
           this.field.checked = true;
           cssClass(this.element).add('selected');
         },
         unselect: function(){
+          this.inherit();
+
           this.field.checked = false;
           cssClass(this.element).remove('selected');
         },
@@ -667,6 +671,8 @@
           this.select();
         },
         update: function(item, delta){
+          this.inherit(item, delta);
+
           this.field.value = this.valueGetter(item.info, item);
           this.titleText.nodeValue = this.titleGetter(item.info, item);
         }
@@ -702,7 +708,7 @@
           var sender = Event.sender(event);
           var item = sender.tagName == 'LABEL' ? sender : DOM.parent(sender, 'LABEL', 0, this.field);
 
-          if (!item || !item.node) 
+          if (!item || !item.node)
             return;
 
           if (!item.node.isDisabled())
@@ -756,6 +762,8 @@
             this.select(true);
         },
         update: function(item, delta){
+          this.inherit(item, delta);
+
           this.field.value = this.valueGetter(item.info, item);
           this.titleText.nodeValue = this.titleGetter(item.info, item);
         }
@@ -818,15 +826,9 @@
       className: namespace + '.Field.Select.Item',
 
       behaviour: {
-        select: function(){
-//          if (this.parentNode)
-//            this.parentNode.setValue(this.getValue());
-        },
-        unselect: function(){
-//          if (this.parentNode)
-//            this.parentNode.setValue();
-        },
         update: function(item, delta){
+          this.inherit(item, delta);
+
           this.field.value = this.valueGetter(item.info, item);
           this.field.text = this.titleGetter(item.info, item);
         }
@@ -914,6 +916,8 @@
           //  this.parentNode.setValue(this.getValue());
         },
         update: function(item, delta){
+          this.inherit(item, delta);
+
           this.titleText.nodeValue = this.titleGetter(item.info, item);
         }
       },
@@ -946,7 +950,7 @@
             cur = DOM.axis(cur ? cur : this.firstChild, DOM.AXIS_FOLLOWING_SIBLING).search(false, 'disabled');
           break;
 
-          case Event.KEY.UP: 
+          case Event.KEY.UP:
             if (event.altKey)
               return this.popup.visible ? this.hide() : (!this.isDisabled() ? this.show() : null);
 
@@ -974,9 +978,13 @@
 
       behaviour: createBehaviour(Field, {
         disable: function(){
+          this.inherit();
+
           cssClass(this.field).add('disabled');
         },
         enable: function(){
+          this.inherit();
+
           cssClass(this.field).remove('disabled');
           if (this.delegate && this.delegate.select)
             this.delegate.select();
@@ -994,7 +1002,7 @@
       caption: null,
       popup: null,
       property: null,
-      
+
       selectedIndex: -1,
 
       captionFormater: Function.$self,
@@ -1335,11 +1343,15 @@
 
       behaviour: {
         disable: function(){
+          this.inherit();
+
           for (var field = this.firstChild; field; field = field.nextSibling)
             if (!field.disabled)
               field.dispatch('disable');
         },
         enable: function(){
+          this.inherit();
+
           for (var field = this.firstChild; field; field = field.nextSibling)
             if (!field.disabled)
               field.dispatch('enable');
@@ -1493,7 +1505,7 @@
         if (child._x)
         {
           for (var i = 0; i < child._x.length; i++)
-          {                             
+          {
             if (child._x[i])
                DOM.replace(child._x[i], child._m[i]);
           }
