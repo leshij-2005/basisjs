@@ -1747,6 +1747,31 @@
     }
   })();
 
+  var resolveResourceUrl = function(resourceUri){
+    var resourceUrl = resourceUri.replace(/^ns:/, '');
+
+    // resolve resources with 'ns:' prefix
+    if (resourceUrl != resourceUri)
+    {
+      // cut off ns: prefix
+      var namespace = resourceUrl;
+      var namespaceRoot = namespace.split('.')[0];
+
+      resourceUrl = namespace.replace(/\./g, '/') + '.js';
+
+      if (namespaceRoot == namespace)
+      {
+        nsRootPath[namespaceRoot] = nsRootPath[namespace] || pathUtils.baseURI;
+        filename2namespace[nsRootPath[namespaceRoot] + resourceUrl] = namespaceRoot;
+      }
+
+      resourceUrl = (nsRootPath[namespaceRoot] || '') + resourceUrl;
+    }
+
+    // absolutize url
+    return pathUtils.resolve(resourceUrl);
+  }
+
   var getResourceContent = function(url, ignoreCache){
     if (ignoreCache || !resourceRequestCache.hasOwnProperty(url))
     {
@@ -1788,8 +1813,8 @@
  /**
   * @name resource
   */
-  var getResource = function(resourceUrl){
-    resourceUrl = pathUtils.resolve(resourceUrl);
+  var getResource = function(resourceUri){
+    var resourceUrl = resolveResourceUrl(resourceUri);
 
     if (!resourceCache[resourceUrl])
     {
@@ -2177,7 +2202,10 @@
       var requirePath = pathUtils.dirname(module.filename) + '/';
       var moduleProto = module.constructor.prototype;
       return function(filename, dirname){
-        if (!/[^a-z0-9_\.]/i.test(filename) || pathUtils.extname(filename) == '.js')
+        if (!/[^a-z0-9_\.]/i.test(filename))
+          filename = resolveResourceUrl(filename);
+
+        if (pathUtils.extname(filename) == '.js')
         {
           var _compile = moduleProto._compile;
           var namespace = getNamespace(filename);
@@ -2216,25 +2244,9 @@
     {
       return function(filename, dirname){
         if (!/[^a-z0-9_\.]/i.test(filename) && pathUtils.extname(filename) != '.js')
-        {
-          // namespace, like 'foo.bar.baz'
-          var namespace = filename;
-          var namespaceRoot = namespace.split('.')[0];
-
-          filename = namespace.replace(/\./g, '/') + '.js';
-
-          if (namespaceRoot == namespace)
-          {
-            nsRootPath[namespaceRoot] = nsRootPath[namespace] || pathUtils.baseURI;
-            filename2namespace[nsRootPath[namespaceRoot] + filename] = namespaceRoot;
-          }
-
-          filename = (nsRootPath[namespaceRoot] || '') + filename;
-        }
+          filename = 'ns:' + filename;
         else
-        {
           filename = pathUtils.resolve(dirname, filename);
-        }
 
         return getResource(filename).fetch();
       };
@@ -2251,7 +2263,7 @@
         cls.prototype[key] = (function(method, clsName){
           return function(){
             /** @cut */ if (config.extProto == 'warn')
-            /** @cut */   consoleMethods.warn(clsName + '#' + method + ' is not a standard method, and it\'s and will be removed soon; use basis.' + clsName.toLowerCase() + '.' + method + ' instead');
+            /** @cut */   consoleMethods.warn(clsName + '#' + method + ' is not a standard method and will be removed soon; use basis.' + clsName.toLowerCase() + '.' + method + ' instead');
 
             var args = [this];
             Array.prototype.push.apply(args, arguments);
