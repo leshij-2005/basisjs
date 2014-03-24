@@ -555,6 +555,24 @@
   }
 
 
+ /**
+  * Generates name for function and registrates it in global scope.
+  * @param {function()} fn Function that should available in global scope.
+  * @param {boolean} permanent If false callback will be removed after fiest invoke.
+  * @return {string} Function name in global scope.
+  */ 
+  function publicCallback(fn, permanent){
+    var name = 'basisjsCallback' + parseInt(1e15 * Math.random()) + Date.now();
+
+    global[name] = permanent ? fn : function(){
+      delete global[name];
+      fn.apply(this, arguments);
+    };
+
+    return name;
+  }
+
+
   // ============================================
   // safe console method wrappers
   //
@@ -3420,7 +3438,8 @@
       // lazy
       lazyInit: lazyInit,
       lazyInitAndRun: lazyInitAndRun,
-      runOnce: runOnce
+      runOnce: runOnce,
+      publicCallback: publicCallback
     },
     array: extend(arrayFrom, merge(Array_extensions, {
       from: arrayFrom,
