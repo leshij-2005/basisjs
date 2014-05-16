@@ -877,15 +877,15 @@
       }
     }
 
-    function addResource(template, token, src, isolatePrefix){
+    function addResource(template, token, src, isolationConf){
       if (src)
       {
         /** @cut */ if (!/^(\.\/|\.\.|\/)/.test(src))
         /** @cut */   basis.dev.warn('Bad usage: <b:' + token.name + ' src=\"' + src + '\"/>.\nFilenames should starts with `./`, `..` or `/`. Otherwise it will treats as special reference in next minor release.');
-
         template.resources.push([
           path.resolve(template.baseURI + src),
-          isolatePrefix
+          isolationConf.prefix,
+          isolationConf.isolationIgnored
         ]);
       }
       else
@@ -893,7 +893,8 @@
         var text = token.childs[0];
         template.resources.push([
           basis.resource.virtual('css', text ? text.value : '').url,
-          isolatePrefix
+          isolationConf.prefix,
+          isolationConf.isolationIgnored
         ]);
       }
     }
@@ -902,7 +903,6 @@
     // main function
     //
     function process(tokens, template, options, context){
-
       function modifyAttr(token, name, action){
         var attrs = tokenAttrs(token);
 
@@ -1110,8 +1110,11 @@
                 case 'style':
                   /** @cut */ if (token.name == 'resource')
                   /** @cut */   basis.dev.warn('<b:resource> is deprecated and will be removed in next minor release. Use <b:style> instead.' + (template.sourceUrl ? ' File: ' + template.sourceUrl : ''));
-
-                  addResource(template, token, elAttrs.src, (context && context.isolate) || '');
+                  var isolationConf = {
+                    prefix: (context && context.isolate) || '',
+                    ignoreIsolation: !!elAttrs.ignoreIsolation
+                  };
+                  addResource(template, token, elAttrs.src, isolationConf);
                 break;
 
                 case 'isolate':
@@ -1220,8 +1223,13 @@
                         decl = getDeclFromSource(resource, resource.url ? path.dirname(resource.url) + '/' : '', true, options);
                       }
 
-                      if (decl.resources && 'no-style' in elAttrs == false)
-                        addResources(template.resources, decl.resources, isolatePrefix);
+                      if (decl.resources && 'no-style' in elAttrs == false){
+                        var isolationConf = {
+                          prefix: isolatePrefix,
+                          ignoreIsolation: false
+                        };
+                        addResources(template.resources, decl.resources, isolationConf);
+                      }
 
                       if (decl.deps)
                         addUnique(template.deps, decl.deps);
@@ -1279,7 +1287,11 @@
                           switch (child.name)
                           {
                             case 'style':
-                              addResource(template, child, tokenAttrs(child).src, isolatePrefix);
+                              var isolationConf = {
+                                prefix: isolatePrefix,
+                                ignoreIsolation: false
+                              };
+                              addResource(template, child, tokenAttrs(child).src, isolationConf);
                               break;
 
                             case 'replace':
@@ -1728,8 +1740,9 @@
         if (result.isolate)
         {
           isolateTokens(result.tokens, result.isolate);
-          for (var i = 0, item; item = result.resources[i]; i++)
+          for (var i = 0, item; item = result.resources[i]; i++){
             item[1] = result.isolate + item[1];
+          }
         }
 
         result.resources = result.resources
@@ -1741,8 +1754,9 @@
           .map(function(item){
             var url = item[0];
             var isolate = item[1];
+            var ignoreIsolation = item[2];
 
-            if (!isolate)
+            if (!isolate || ignoreIsolation)
               return url;
 
             var resource = basis.resource.virtual('css', '').ready(function(cssResource){
